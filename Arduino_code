@@ -1,0 +1,117 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+// Initialize the LCD objects with their unique I2C addresses
+LiquidCrystal_I2C lcd1(0x20, 16, 2); // Adjust this address based on your I2C scanner results
+LiquidCrystal_I2C lcd2(0x21, 16, 2); // Adjust this address based on your I2C scanner results
+LiquidCrystal_I2C lcd3(0x22, 16, 2); // Adjust this address based on your I2C scanner results
+
+// Scrolling message
+//String message = "This is a continuous scrolling message across three 16x2 LCDs ";
+String message = "    FUCK THIS SHIT!!~~~~~ I'M OUTTT!!!! PEACEOUTT!!~~~~~~ I HATE MY LIFE....";
+int scrollPos = 0;
+int messageLength = message.length();
+int scrollSpeed = 0; // Variable to control the scroll speed
+
+void setup() {
+  // Initialize serial for debugging
+  Serial.begin(9600);
+
+  // Initialize all LCDs
+  lcd1.init();
+  lcd2.init();
+  lcd3.init();
+
+  // Turn on the backlight for each LCD
+  lcd1.backlight();
+  lcd2.backlight();
+  lcd3.backlight();
+
+  // Clear all displays initially
+  lcd1.clear();
+  lcd2.clear();
+  lcd3.clear();
+  
+  // Initial message setup
+  displayMessage();
+  
+  // Debugging message
+  Serial.println("LCDs initialized and cleared.");
+}
+
+void loop() {
+  // Update scroll speed control (slower scrolling)
+  scrollSpeed++;
+  if (scrollSpeed >= 6) { // Adjust this number for smoother and slower scrolling
+    scrollSpeed = 0;
+    scrollPos++;
+
+    // Reset scroll position to wrap around the message
+    if (scrollPos >= (messageLength + 32)) { // 32 is the total width of LCD2 and LCD1
+      scrollPos = 0; // Reset to start after full scroll
+    }
+
+    // Update the message display
+    displayMessage();
+  }
+
+  delay(100); // Lower delay for smoother refresh (adjust to your preference)
+}
+
+// Function to display message on each LCD
+void displayMessage() {
+  // Initialize strings to store parts for each display
+  String part3 = "";
+  String part2 = "";
+  String part1 = "";
+  
+  // Display part3 only when scrollPos is within message length
+  if (scrollPos < messageLength + 16) { // First 16 chars on LCD3
+    part3 = getDisplaySubstring(scrollPos, 16);      // Third LCD (0x22) shows first 16 chars
+  }
+
+  // Display part2 only after scrollPos reaches message end and continues
+  if (scrollPos >= 16 && scrollPos < messageLength + 32) { // Then chars move to LCD2
+    part2 = getDisplaySubstring(scrollPos - 16, 16); // Second LCD (0x21) shows the next 16 chars
+  }
+
+  // Display part1 only after scrollPos moves far enough to bring message to LCD1
+  if (scrollPos >= 32 && scrollPos < messageLength + 48) { // Then chars move to LCD1
+    part1 = getDisplaySubstring(scrollPos - 32, 16); // First LCD (0x20) shows the next 16 chars
+  }
+
+  // Set cursor to start of each LCD and print
+  lcd3.setCursor(0, 0);
+  lcd3.print(part3);
+  
+  lcd2.setCursor(0, 0);
+  lcd2.print(part2);
+  
+  lcd1.setCursor(0, 0);
+  lcd1.print(part1);
+  
+  // Debugging output
+  Serial.print("LCD3: ");
+  Serial.println(part3);
+  Serial.print("LCD2: ");
+  Serial.println(part2);
+  Serial.print("LCD1: ");
+  Serial.println(part1);
+}
+
+// Helper function to get the substring for display
+String getDisplaySubstring(int start, int length) {
+  String result = "";
+  
+  // Loop through the required length of characters
+  for (int i = 0; i < length; i++) {
+    int pos = (start + i) % messageLength; // Wrap around the message
+    if (pos < 0 || pos >= messageLength) {
+      result += " "; // Fill with spaces if message is off-screen
+    } else {
+      result += message[pos];
+    }
+  }
+  
+  return result;
+}
