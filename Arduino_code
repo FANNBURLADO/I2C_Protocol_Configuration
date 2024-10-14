@@ -7,8 +7,7 @@ LiquidCrystal_I2C lcd2(0x21, 16, 2); // Adjust this address based on your I2C sc
 LiquidCrystal_I2C lcd3(0x22, 16, 2); // Adjust this address based on your I2C scanner results
 
 // Scrolling message
-//String message = "This is a continuous scrolling message across three 16x2 LCDs ";
-String message = "    FUCK THIS SHIT!!~~~~~ I'M OUTTT!!!! PEACEOUTT!!~~~~~~ I HATE MY LIFE....";
+String message = "This is a continuous scrolling message across three 16x2 LCDs ";
 int scrollPos = 0;
 int messageLength = message.length();
 int scrollSpeed = 0; // Variable to control the scroll speed
